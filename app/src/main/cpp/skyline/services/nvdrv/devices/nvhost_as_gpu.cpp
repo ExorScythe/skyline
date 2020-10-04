@@ -65,13 +65,13 @@ namespace skyline::service::nvdrv::device {
             auto nvmap{driver->nvMap.lock()};
             auto mapping{nvmap->handleTable.at(data.nvmapHandle)};
 
-            u64 mapPhysicalAddress{data.bufferOffset + mapping->address};
+            u8* mapPointer{data.bufferOffset + mapping->pointer};
             u64 mapSize{data.mappingSize ? data.mappingSize : mapping->size};
 
             if (data.flags & 1)
-                data.offset = state.gpu->memoryManager.MapFixed(data.offset, mapPhysicalAddress, mapSize);
+                data.offset = state.gpu->memoryManager.MapFixed(data.offset, mapPointer, mapSize);
             else
-                data.offset = state.gpu->memoryManager.MapAllocate(mapPhysicalAddress, mapSize);
+                data.offset = state.gpu->memoryManager.MapAllocate(mapPointer, mapSize);
 
             if (data.offset == 0) {
                 state.logger->Warn("Failed to map GPU address space region!");
@@ -138,10 +138,10 @@ namespace skyline::service::nvdrv::device {
                 auto mapping{nvmap->handleTable.at(entry.nvmapHandle)};
 
                 u64 mapAddress{static_cast<u64>(entry.gpuOffset) << MinAlignmentShift};
-                u64 mapPhysicalAddress{mapping->address + (static_cast<u64>(entry.mapOffset) << MinAlignmentShift)};
+                u8* mapPointer{mapping->pointer + (static_cast<u64>(entry.mapOffset) << MinAlignmentShift)};
                 u64 mapSize{static_cast<u64>(entry.pages) << MinAlignmentShift};
 
-                state.gpu->memoryManager.MapFixed(mapAddress, mapPhysicalAddress, mapSize);
+                state.gpu->memoryManager.MapFixed(mapAddress, mapPointer, mapSize);
             } catch (const std::out_of_range &) {
                 state.logger->Warn("Invalid NvMap handle: 0x{:X}", entry.nvmapHandle);
                 return NvStatus::BadParameter;
