@@ -63,7 +63,7 @@ namespace skyline::service::nvdrv::device {
         try {
             auto driver{nvdrv::driver.lock()};
             auto nvmap{driver->nvMap.lock()};
-            auto mapping{nvmap->handleTable.at(data.nvmapHandle)};
+            auto mapping{nvmap->GetObject(data.nvmapHandle)};
 
             u8* mapPointer{data.bufferOffset + mapping->pointer};
             u64 mapSize{data.mappingSize ? data.mappingSize : mapping->size};
@@ -135,7 +135,7 @@ namespace skyline::service::nvdrv::device {
             try {
                 auto driver{nvdrv::driver.lock()};
                 auto nvmap{driver->nvMap.lock()};
-                auto mapping{nvmap->handleTable.at(entry.nvmapHandle)};
+                auto mapping{nvmap->GetObject(entry.nvmapHandle)};
 
                 u64 mapAddress{static_cast<u64>(entry.gpuOffset) << MinAlignmentShift};
                 u8* mapPointer{mapping->pointer + (static_cast<u64>(entry.mapOffset) << MinAlignmentShift)};
